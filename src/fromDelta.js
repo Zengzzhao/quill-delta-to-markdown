@@ -5,9 +5,12 @@ const defaultConverters = require('./fromDelta.converters');
 const Node = require('./utils/Node');
 
 exports = module.exports = function(ops, converters = defaultConverters) {
+  // 将Delta的ops按规则转换成一棵Node树，然后渲染成Markdown字符串
   return trimEnd(convert(ops, converters, false).render()) + '\n';
 };
 
+// 核心转换函数，将Delta的ops转换成Node树
+// 遍历ops，根据每个op的类型和属性，调用相应的转换器函数，构建Node树
 function convert(ops, converters, inCodeBlock) {
   var group, line, el, activeInline, beginningOfLine;
   var root = new Node();
