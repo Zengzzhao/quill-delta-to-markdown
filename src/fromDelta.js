@@ -1,12 +1,12 @@
-const isObject = require('lodash/isObject');
-const isArray = require('lodash/isArray');
-const trimEnd = require('lodash/trimEnd');
-const defaultConverters = require('./fromDelta.converters');
-const Node = require('./utils/Node');
+const isObject = require("lodash/isObject");
+const isArray = require("lodash/isArray");
+const trimEnd = require("lodash/trimEnd");
+const defaultConverters = require("./fromDelta.converters");
+const Node = require("./utils/Node");
 
 exports = module.exports = function(ops, converters = defaultConverters) {
   // 将Delta的ops按规则转换成一棵Node树，然后渲染成Markdown字符串
-  return trimEnd(convert(ops, converters, false).render()) + '\n';
+  return trimEnd(convert(ops, converters, false).render()) + "\n";
 };
 
 // 核心转换函数，将Delta的ops转换成Node树
@@ -16,7 +16,7 @@ function convert(ops, converters, inCodeBlock) {
   var root = new Node();
 
   function newLine() {
-    el = line = new Node(['', '\n']);
+    el = line = new Node(["", "\n"]);
     root.append(line);
     activeInline = {};
   }
@@ -24,7 +24,7 @@ function convert(ops, converters, inCodeBlock) {
 
   for (var i = 0; i < ops.length; i++) {
     var op = ops[i];
-
+    // 如果op.insert是对象,表示是嵌入内容,比如图片、分割线
     if (isObject(op.insert)) {
       for (var k in op.insert) {
         if (converters.embed[k]) {
@@ -33,18 +33,25 @@ function convert(ops, converters, inCodeBlock) {
         }
       }
     } else {
-      var lines = op.insert.split('\n');
+      var lines = op.insert.split("\n");
 
       // If the operation starts with a newline and follows a code-block line,
       // close the code block by appending the closing '```' to the current line
       // or creating a new line with the closing '```'
       if (op.insert.startsWith("\n")) {
         var prevNode = ops[i - 1];
-        if (prevNode && prevNode.attributes && 'code-block' in prevNode.attributes) {
-          if (el.children.length === 0 || (el.children.length === 1 && el.children[0].text === '')) {
-            el.append('```\n');
+        if (
+          prevNode &&
+          prevNode.attributes &&
+          "code-block" in prevNode.attributes
+        ) {
+          if (
+            el.children.length === 0 ||
+            (el.children.length === 1 && el.children[0].text === "")
+          ) {
+            el.append("```\n");
           } else {
-            el = new Node(['', '```\n']);
+            el = new Node(["", "```\n"]);
             root.append(el);
           }
           inCodeBlock = false; // Reset inCodeBlock after closing the code block
@@ -61,7 +68,7 @@ function convert(ops, converters, inCodeBlock) {
           for (var attr in op.attributes) {
             if (converters.block[attr]) {
               var fn = converters.block[attr];
-              if (typeof fn === 'object') {
+              if (typeof fn === "object") {
                 if (group && group.type !== attr) {
                   group = null;
                 }
@@ -84,7 +91,7 @@ function convert(ops, converters, inCodeBlock) {
               // Call the block converter function and update inCodeBlock
               inCodeBlock = fn.call(line, op.attributes, group, inCodeBlock);
               newLine();
-              break
+              break;
             }
           }
         }
@@ -94,7 +101,10 @@ function convert(ops, converters, inCodeBlock) {
           if ((l > 0 || beginningOfLine) && group && ++group.distance >= 2) {
             group = null;
           }
-          applyInlineAttributes(op.attributes, ops[i + 1] && ops[i + 1].attributes);
+          applyInlineAttributes(
+            op.attributes,
+            ops[i + 1] && ops[i + 1].attributes
+          );
           el.append(lines[l]);
           if (l < lines.length - 1) {
             newLine();
@@ -118,12 +128,12 @@ function convert(ops, converters, inCodeBlock) {
       seen[tag._format] = true;
       if (!attrs[tag._format]) {
         for (var k in seen) {
-          delete activeInline[k]
+          delete activeInline[k];
         }
-        el = tag.parent()
+        el = tag.parent();
       }
 
-      tag = tag.parent()
+      tag = tag.parent();
     }
 
     for (var attr in attrs) {
@@ -161,8 +171,8 @@ function convert(ops, converters, inCodeBlock) {
 function hasBlockLevelAttribute(attrs, converters) {
   for (var k in attrs) {
     if (Object.keys(converters.block).includes(k)) {
-      return true
+      return true;
     }
   }
-  return false
+  return false;
 }

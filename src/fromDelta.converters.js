@@ -1,19 +1,20 @@
 const Node = require('./utils/Node');
 const { encodeLink } = require('./utils/URL');
 
+// 转换规则表
+// 将Delta的各种类型映射到对应的Markdown语法
 module.exports = {
+  // 嵌入类型
   embed: {
     image: function(src) {
       this.append('![](' + encodeLink(src) + ')');
     },
-    // Not a default Quill feature, converts custom divider embed blot added when
-    // creating quill editor instance.
-    // See https://quilljs.com/guides/cloning-medium-with-parchment/#dividers
+    // 不是Quill的默认功能,转换自定义的分割线嵌入块,见https://quilljs.com/guides/cloning-medium-with-parchment/#dividers
     thematic_break: function() {
       this.open = '\n---\n' + this.open;
     },
   },
-
+  // 行内类型
   inline: {
     italic: function() {
       return ['_', '_'];
@@ -25,7 +26,7 @@ module.exports = {
       return ['[', '](' + url + ')'];
     },
   },
-
+  // 块级类型
   block: {
     'header': function({header}) {
       this.open = '#'.repeat(header) + ' ' + this.open;
